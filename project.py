@@ -365,6 +365,8 @@ def power(individual):
     cp = 836.8
     h = 65.5*np.exp(-d_sma/4)*(70-25)**(1/6.0)
     k = 1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2)
+    if k < 0:
+        k = 0
     t = -((rho*d_sma*cp)/(4*h))*np.log(k)
     print(t)
     return F[4]*t*I**2
@@ -390,7 +392,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register('mate', tools.cxOnePoint)
 # toolbox.register('crossover', tools.cxTwoPoint)
 toolbox.register('mutate', tools.mutFlipBit, indpb = 0.4)
-toolbox.register('select', tools.selTournament, tournsize=5)
+toolbox.register('select', tools.selNSGA2)
 toolbox.register('evaluate', power)
 listCons = [geom_cons_1,geom_cons_2,geom_cons_3,geom_cons_4,geom_cons_5,geom_cons_6,geom_cons_7,geom_cons_8,geom_cons_9,func_cons_1,func_cons_2,func_cons_3,func_cons_4]
 listDist = [geom_cons_1_dist,geom_cons_2_dist,geom_cons_3_dist,geom_cons_4_dist,geom_cons_5_dist,geom_cons_6_dist,geom_cons_7_dist,geom_cons_8_dist,geom_cons_9_dist,func_cons_1_dist,func_cons_2_dist,func_cons_3_dist,func_cons_4_dist]
