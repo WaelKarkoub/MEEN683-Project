@@ -376,34 +376,34 @@ def height(individual):
     return np.argmax([D_spring,d_sma])
 
 
-creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMin)
 
-population_size = 600
+population_size = 1000
 num_generations = 2000
 gene_length = 119
 
 toolbox = base.Toolbox()
 # toolbox.register("map", pool.map)
 hof = tools.HallOfFame(1)
-toolbox.register("binary", bernoulli.rvs,0.5)
-# toolbox.register("binary", random.randint, 0, 1)
+# toolbox.register("binary", bernoulli.rvs,0.5)
+toolbox.register("binary", random.randint, 0, 1)
 toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.binary, n=gene_length)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register('mate', tools.cxOnePoint)
+toolbox.register('mate', tools.cxOrdered)
 # toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', tools.mutFlipBit, indpb = 0.4)
+toolbox.register('mutate', tools.mutFlipBit, indpb = 0.5)
 toolbox.register('select', tools.selNSGA2)
 toolbox.register('evaluate', power)
 listCons = [geom_cons_1,geom_cons_2,geom_cons_3,geom_cons_4,geom_cons_5,geom_cons_6,geom_cons_7,geom_cons_8,geom_cons_9,func_cons_1,func_cons_2,func_cons_3,func_cons_4]
 listDist = [geom_cons_1_dist,geom_cons_2_dist,geom_cons_3_dist,geom_cons_4_dist,geom_cons_5_dist,geom_cons_6_dist,geom_cons_7_dist,geom_cons_8_dist,geom_cons_9_dist,func_cons_1_dist,func_cons_2_dist,func_cons_3_dist,func_cons_4_dist]
 for i in range(len(listCons)):
-    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 7.0,listDist[i]))
+    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 12.0,listDist[i]))
 
 population = toolbox.population(n = population_size)
-pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.4, mutpb = 0.4, ngen = num_generations, verbose = True)
+pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.9, mutpb = 0.6, ngen = num_generations, verbose = True)
 
-best_individuals = tools.selBest(population,k = 1)
+best_individuals = tools.selBest(pop,k = 1)
 l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(best_individuals[0])
 print("l1: {}, l2: {}, l_sma: {}, d_sma: {}, d_spring: {}, l_spring: {}, D_spring: {}, N_spring: {}, dielectric: {}, l_lever: {}, mat: {}, power: {}".format(l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat[0], power(best_individuals[0])))
 
