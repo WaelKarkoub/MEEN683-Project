@@ -22,7 +22,7 @@ def decode(individual):
     dN_spring = 1
     d_dielectric = ((10*10**-3)/4 - vblock/eps_air)/2**12
     dl_lever = ((10*10**-3)/4 - 0)/2**12
-    dI = (3000 * 10**-3 - 45*10**-3)/2**12
+    dI = (4000 * 10**-3 - 45*10**-3)/2**12
 
 
     l1 = dl1*BitArray(individual[0:12]).uint + 0.5*10**-3
@@ -380,14 +380,14 @@ creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMax)
 
 population_size = 600
-num_generations = 200
+num_generations = 2000
 gene_length = 119
 
 toolbox = base.Toolbox()
 # toolbox.register("map", pool.map)
 hof = tools.HallOfFame(1)
-# toolbox.register("binary", bernoulli.rvs,0.5)
-toolbox.register("binary", random.randint, 0, 1)
+toolbox.register("binary", bernoulli.rvs,0.5)
+# toolbox.register("binary", random.randint, 0, 1)
 toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.binary, n=gene_length)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register('mate', tools.cxOnePoint)
