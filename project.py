@@ -6,6 +6,7 @@ import pickle
 import matplotlib.pyplot as plt
 import time
 import multiprocessing
+import random 
 pool = multiprocessing.Pool()
 
 def decode(individual):
@@ -159,8 +160,7 @@ def decode(individual):
 
     F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
     mat = [material,E,G,v]
-
-    return [l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F]
+    return [l1,l2,l_sma,dd_sma[d_sma if d_sma<=len(dd_sma)-1 else 11],d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F]
 
 def geom_cons_1(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
@@ -376,17 +376,18 @@ def height(individual):
     return np.argmax([D_spring,d_sma])
 
 
-creator.create("FitnessMin", base.Fitness, weights=(1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMin)
+creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMax)
 
 population_size = 600
-num_generations = 100
+num_generations = 200
 gene_length = 119
 
 toolbox = base.Toolbox()
 # toolbox.register("map", pool.map)
 hof = tools.HallOfFame(1)
-toolbox.register("binary", bernoulli.rvs,0.5)
+# toolbox.register("binary", bernoulli.rvs,0.5)
+toolbox.register("binary", random.randint, 0, 1)
 toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.binary, n=gene_length)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register('mate', tools.cxOnePoint)
