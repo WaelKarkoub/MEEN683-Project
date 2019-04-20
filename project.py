@@ -9,29 +9,32 @@ import multiprocessing
 pool = multiprocessing.Pool()
 
 def decode(individual):
-    dl1 = (10*10**-3 - 1*10**-3)/2**12
-    dl2 = (10*10**-3 - 1*10**-3)/2**12
-    dl_sma = (10*10**-3 - 1*10**-3)/2**12
-    dd_spring = (10*10**-3 - 1*10**-3)/2**12
-    dl_spring = (10*10**-3 - 1*10**-3)/2**12
-    dD_spring = (10*10**-3 - 1*10**-3)/2**12
+    vblock = 500
+    eps_air = 10**6
+
+    dl1 = ((10*10**-3)/2 - 0.5*10**-3)/2**12
+    dl2 = ((10*10**-3)/2 - 0.5*10**-3)/2**12
+    dl_sma = ((10*10**-3)/2 - 2*10**-3)/2**12
+    dd_spring = ((2*10**-3)/2 - 0.025*10**-3)/2**12
+    dl_spring = ((10*10**-3)/2 - 0.025*10**-3)/2**12
+    dD_spring = ((10*10**-3)/2 - 1*10**-3)/2**12
     dN_spring = 1
-    d_dielectric = (1*10**-3 - 1*10**-5)/2**12
-    dl_lever = (10*10**-3 - 1*10**-3)/2**12
-    dI = (4000 * 10**-3 - 45*10**-3)/2**12
+    d_dielectric = ((10*10**-3)/4 - vblock/eps_air)/2**12
+    dl_lever = ((10*10**-3)/4 - 0)/2**12
+    dI = (3000 * 10**-3 - 45*10**-3)/2**12
 
 
-    l1 = dl1*BitArray(individual[0:12]).uint + 1*10**-3
-    l2 = dl2*BitArray(individual[12:24]).uint+ 1*10**-3
+    l1 = dl1*BitArray(individual[0:12]).uint + 0.5*10**-3
+    l2 = dl2*BitArray(individual[12:24]).uint+ 0.5*10**-3
     d_sma = BitArray(individual[24:28]).uint
-    l_sma = dl_sma*BitArray(individual[28:40]).uint+ 1*10**-3
-    d_spring = dd_spring*BitArray(individual[40:52]).uint+ 1*10**-3
-    l_spring = dl_spring*BitArray(individual[52:64]).uint+ 1*10**-3
+    l_sma = dl_sma*BitArray(individual[28:40]).uint+  2*10**-3
+    d_spring = dd_spring*BitArray(individual[40:52]).uint+ 0.025*10**-3
+    l_spring = dl_spring*BitArray(individual[52:64]).uint+ 0.025*10**-3
     D_spring = dD_spring*BitArray(individual[64:76]).uint+ 1*10**-3
-    N_spring = dN_spring*BitArray(individual[76:80]).uint+2
-    dielectric = d_dielectric*BitArray(individual[80:92]).uint + 1*10**-5
+    N_spring = dN_spring*BitArray(individual[76:80]).uint+4
+    dielectric = d_dielectric*BitArray(individual[80:92]).uint + vblock/eps_air
     material = BitArray(individual[92:95]).uint
-    l_lever = dl_spring*BitArray(individual[95:107]).uint+1*10**-3
+    l_lever = dl_spring*BitArray(individual[95:107]).uint+0
     I = dI*BitArray(individual[107:119]).uint+45*10**-3
 
     dd_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.1*10**-3, 0.13*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
@@ -236,6 +239,8 @@ def geom_cons_6_dist(individual):
 def geom_cons_7(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.05
+    if (l_spring**2 - (l_spring-dielectric)**2) < 0:
+        return False
     if np.sqrt(l_spring**2 - (l_spring-dielectric)**2)>=(eps_max*l_sma*l2/l1):
         return True
     else:
@@ -333,7 +338,26 @@ def func_cons_4_dist(individual):
     eps_air = 10**6
     return 2*dielectric >=(vblock/eps_air)
 
+def func_cons_5(individual):
+    l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
+    # F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
+    # mat = [material,E,G,v]
+    rho = 6.45*10**3
+    cp = 836.8
+    h = 65.5*np.exp(-d_sma/4)*(70-25)**(1/6.0)
+    k = 1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2)
+    if k > 0:
+        return True
+    else:
+        return False
 
+def func_cons_5_dist(individual):
+    l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
+    rho = 6.45*10**3
+    cp = 836.8
+    h = 65.5*np.exp(-d_sma/4)*(70-25)**(1/6.0)
+    k = 1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2)
+    return k
 
 def power(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
@@ -341,8 +365,6 @@ def power(individual):
     cp = 836.8
     h = 65.5*np.exp(-d_sma/4)*(70-25)**(1/6.0)
     k = 1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2)
-    if k < 0:
-        k = 0
     t = -((rho*d_sma*cp)/(4*h))*np.log(k)
     print(t)
     return F[4]*t*I**2
@@ -356,7 +378,7 @@ creator.create("FitnessMin", base.Fitness, weights=(1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
 
 population_size = 600
-num_generations = 2000
+num_generations = 100
 gene_length = 119
 
 toolbox = base.Toolbox()
@@ -365,18 +387,18 @@ hof = tools.HallOfFame(1)
 toolbox.register("binary", bernoulli.rvs,0.5)
 toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.binary, n=gene_length)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register('mate', tools.cxTwoPoint)
+toolbox.register('mate', tools.cxOnePoint)
 # toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', tools.mutFlipBit, indpb = 0.1)
-toolbox.register('select', tools.selTournament, tournsize=3)
+toolbox.register('mutate', tools.mutFlipBit, indpb = 0.4)
+toolbox.register('select', tools.selTournament, tournsize=5)
 toolbox.register('evaluate', power)
 listCons = [geom_cons_1,geom_cons_2,geom_cons_3,geom_cons_4,geom_cons_5,geom_cons_6,geom_cons_7,geom_cons_8,geom_cons_9,func_cons_1,func_cons_2,func_cons_3,func_cons_4]
 listDist = [geom_cons_1_dist,geom_cons_2_dist,geom_cons_3_dist,geom_cons_4_dist,geom_cons_5_dist,geom_cons_6_dist,geom_cons_7_dist,geom_cons_8_dist,geom_cons_9_dist,func_cons_1_dist,func_cons_2_dist,func_cons_3_dist,func_cons_4_dist]
 for i in range(len(listCons)):
-    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 1000.0,listDist[i]))
+    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 7.0,listDist[i]))
 
 population = toolbox.population(n = population_size)
-pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.2, mutpb = 0.1, ngen = num_generations, verbose = True)
+pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.4, mutpb = 0.4, ngen = num_generations, verbose = True)
 
 best_individuals = tools.selBest(population,k = 1)
 l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(best_individuals[0])
