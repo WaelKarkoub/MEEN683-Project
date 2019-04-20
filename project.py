@@ -274,7 +274,7 @@ def geom_cons_9_dist(individual):
 
 def current(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return ((10**7)*d_sma**2 + 275.92*d_sma + 0.0301)*10**-3
+    return (10**7)*d_sma**2 + 275.92*d_sma + 0.0301
 
 def func_cons_1(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
