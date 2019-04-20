@@ -340,7 +340,7 @@ def power(individual):
     rho = 6.45*10**3
     cp = 836.8
     h = 65.5*np.exp(-d_sma/4)*(70-25)**(1/6.0)
-    t = -(rho*d_sma*cp)/(4*h)*np.log(1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2))
+    t = -((rho*d_sma*cp)/(4*h))*np.log(1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2))
     return F[4]*t*I**2
 
 def height(individual):
