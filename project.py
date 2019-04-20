@@ -40,24 +40,24 @@ def decode(individual):
         E = 207.0*10**9
         G = 79.3*10**9
         v = 0.292
-    
+
     elif material == 1: # Copper
         E = 119.0*10**9
         G = 44.7*10**9
         v = 0.326
-    
+
     elif material == 2: # Aluminum
         E = 71.7*10**9
         G = 26.9*10**9
         v = 0.333
-    
+
     elif material >= 3: # Titanium
         E = 114.0*10**9
         G = 42.4*10**9
         v = 0.34
-    
+
     F_spring = (G*d_spring**4)/(8*N_spring*D_spring**2) * dielectric
-    
+
     if d_sma == 0:
         F_heating_sma = 9.81*8.9 * 10**-3
         F_rest_sma = 9.81*3.0 * 10**-3
@@ -65,7 +65,7 @@ def decode(individual):
         R = 1425
         LT = 0.18
         HT = 0.15
-    
+
     elif d_sma == 1:
         F_heating_sma = 9.81*20 * 10**-3
         F_rest_sma = 9.81*8 * 10**-3
@@ -73,7 +73,7 @@ def decode(individual):
         R = 890
         LT = 0.24
         HT = 0.20
-    
+
     elif d_sma == 2:
         F_heating_sma = 9.81*36 * 10**-3
         F_rest_sma = 9.81*14 * 10**-3
@@ -81,7 +81,7 @@ def decode(individual):
         R = 500
         LT = 0.4
         HT = 0.30
-    
+
     elif d_sma == 3:
         F_heating_sma = 9.81*80 * 10**-3
         F_rest_sma = 9.81*32 * 10**-3
@@ -89,7 +89,7 @@ def decode(individual):
         R = 232
         LT = 0.8
         HT = 0.7
-    
+
     elif d_sma == 4:
         F_heating_sma = 9.81*143 * 10**-3
         F_rest_sma = 9.81*57 * 10**-3
@@ -97,7 +97,7 @@ def decode(individual):
         R = 126
         LT = 1.1
         HT = 0.9
-    
+
     elif d_sma == 5:
         F_heating_sma = 9.81*223 * 10**-3
         F_rest_sma = 9.81*89 * 10**-3
@@ -105,7 +105,7 @@ def decode(individual):
         R = 75
         LT = 1.6
         HT = 1.4
-    
+
     elif d_sma == 6:
         F_heating_sma = 9.81*321 * 10**-3
         F_rest_sma = 9.81*128 * 10**-3
@@ -113,7 +113,7 @@ def decode(individual):
         R = 55
         LT = 2.0
         HT = 1.7
-    
+
     elif d_sma == 7:
         F_heating_sma = 9.81*570 * 10**-3
         F_rest_sma = 9.81*228 * 10**-3
@@ -121,7 +121,7 @@ def decode(individual):
         R = 29
         LT = 3.2
         HT = 2.7
-    
+
     elif d_sma == 8:
         F_heating_sma = 9.81*891 * 10**-3
         F_rest_sma = 9.81*356 * 10**-3
@@ -129,7 +129,7 @@ def decode(individual):
         R = 18.5
         LT = 5.4
         HT = 4.5
-    
+
     elif d_sma == 9:
         F_heating_sma = 9.81*1280 * 10**-3
         F_rest_sma = 9.81*512 * 10**-3
@@ -137,7 +137,7 @@ def decode(individual):
         R = 12.2
         LT = 8.1
         HT = 6.8
-    
+
     elif d_sma == 10:
         F_heating_sma = 9.81*2004 * 10**-3
         F_rest_sma = 9.81*802 * 10**-3
@@ -145,7 +145,7 @@ def decode(individual):
         LT = 10.5
         R = 8.3
         HT = 8.8
-    
+
     elif d_sma >= 11:
         F_heating_sma = 9.81*3560 * 10**-3
         F_rest_sma = 9.81*1424 * 10**-3
@@ -153,7 +153,7 @@ def decode(individual):
         R = 4.3
         LT = 16.8
         HT = 114.0
-    
+
     F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
     mat = [material,E,G,v]
 
@@ -168,21 +168,21 @@ def geom_cons_1(individual):
 
 def geom_cons_1_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return (l1+l2+dielectric) - 10*9.81*10**-3
+    return (l1+l2+dielectric) - 10*10**-3
 
 
 def geom_cons_2(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    eps_max = 0.04
-    if 2*l_sma+2*eps_max < 10*10**-3:
+    eps_max = 0.05
+    if (2+eps_max)*l_sma < 10*10**-3:
         return True
     else:
         return False
 
 def geom_cons_2_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    eps_max = 0.04
-    return 2*l_sma+2*eps_max - 10*10**-3
+    eps_max = 0.05
+    return (2+eps_max)*l_sma - 10*10**-3
 
 def geom_cons_3(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
@@ -222,7 +222,7 @@ def geom_cons_5_dist(individual):
 
 def geom_cons_6(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    eps_max = 0.04
+    eps_max = 0.05
     if l_lever>=(2*eps_max*l_sma*l2/l1):
         return True
     else:
@@ -235,7 +235,7 @@ def geom_cons_6_dist(individual):
 
 def geom_cons_7(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    eps_max = 0.04
+    eps_max = 0.05
     if np.sqrt(l_spring**2 - (l_spring-dielectric)**2)>=(eps_max*l_sma*l2/l1):
         return True
     else:
@@ -243,7 +243,7 @@ def geom_cons_7(individual):
 
 def geom_cons_7_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    eps_max = 0.04
+    eps_max = 0.05
     return np.sqrt(l_spring**2 - (l_spring-dielectric)**2) - (eps_max*l_sma*l2/l1)
 
 def geom_cons_8(individual):
@@ -340,7 +340,11 @@ def power(individual):
     rho = 6.45*10**3
     cp = 836.8
     h = 65.5*np.exp(-d_sma/4)*(70-25)**(1/6.0)
-    t = -((rho*d_sma*cp)/(4*h))*np.log(1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2))
+    k = 1+(h*np.pi*d_sma*l_sma*(25-70))/(l_sma*F[4]*I**2)
+    if k < 0:
+        k = 0
+    t = -((rho*d_sma*cp)/(4*h))*np.log(k)
+    print(t)
     return F[4]*t*I**2
 
 def height(individual):
@@ -348,11 +352,11 @@ def height(individual):
     return np.argmax([D_spring,d_sma])
 
 
-creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+creator.create("FitnessMin", base.Fitness, weights=(1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMin)
 
-population_size = 500
-num_generations = 100
+population_size = 600
+num_generations = 2000
 gene_length = 119
 
 toolbox = base.Toolbox()
@@ -363,16 +367,16 @@ toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.bina
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register('mate', tools.cxTwoPoint)
 # toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', tools.mutFlipBit, indpb = 0.5)
+toolbox.register('mutate', tools.mutFlipBit, indpb = 0.1)
 toolbox.register('select', tools.selTournament, tournsize=3)
 toolbox.register('evaluate', power)
 listCons = [geom_cons_1,geom_cons_2,geom_cons_3,geom_cons_4,geom_cons_5,geom_cons_6,geom_cons_7,geom_cons_8,geom_cons_9,func_cons_1,func_cons_2,func_cons_3,func_cons_4]
 listDist = [geom_cons_1_dist,geom_cons_2_dist,geom_cons_3_dist,geom_cons_4_dist,geom_cons_5_dist,geom_cons_6_dist,geom_cons_7_dist,geom_cons_8_dist,geom_cons_9_dist,func_cons_1_dist,func_cons_2_dist,func_cons_3_dist,func_cons_4_dist]
 for i in range(len(listCons)):
-    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 1000.0, listDist[i]))
+    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 1000.0,listDist[i]))
 
 population = toolbox.population(n = population_size)
-pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.4, mutpb = 0.5, ngen = num_generations,halloffame=hof, verbose = True)
+pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.2, mutpb = 0.1, ngen = num_generations, verbose = True)
 
 best_individuals = tools.selBest(population,k = 1)
 l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(best_individuals[0])
