@@ -8,6 +8,8 @@ import time
 import multiprocessing
 import random 
 pool = multiprocessing.Pool()
+import itertools
+import matplotlib.pyplot as plt
 
 def decode(individual):
     vblock = 500
@@ -16,13 +18,13 @@ def decode(individual):
     dl1 = ((10*10**-3)/2 - 0.5*10**-3)/2**12
     dl2 = ((10*10**-3)/2 - 0.5*10**-3)/2**12
     dl_sma = ((10*10**-3)/2 - 2*10**-3)/2**12
-    dd_spring = ((2*10**-3)/2 - 0.025*10**-3)/2**12
-    dl_spring = ((10*10**-3)/2 - 0.025*10**-3)/2**12
-    dD_spring = ((10*10**-3)/2 - 1*10**-3)/2**12
+    dd_spring = (2*10**-3 - 0.025*10**-3)/2**12
+    dl_spring = ((10*10**-3)/2 - 0.0001*10**-3)/2**12
+    dD_spring = ((10*10**-3)/2 - 0.05*10**-3)/2**12
     dN_spring = 1
     d_dielectric = ((10*10**-3)/4 - vblock/eps_air)/2**12
-    dl_lever = ((10*10**-3)/4 - 0)/2**12
-    dI = (4000 * 10**-3 - 45*10**-3)/2**12
+    dl_lever = ((10*10**-3)/2 - 0)/2**12
+    dI = (4000 * 10**-3 - 5*10**-3)/2**12
 
 
     l1 = dl1*BitArray(individual[0:12]).uint + 0.5*10**-3
@@ -162,22 +164,30 @@ def decode(individual):
     mat = [material,E,G,v]
     return [l1,l2,l_sma,dd_sma[d_sma if d_sma<=len(dd_sma)-1 else 11],d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F]
 
+def tol(value,tolerence=10**-1):
+    u = value+tolerence
+    l = value-tolerence
+    return [u,l]
+
 def geom_cons_1(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    if (l1+l2+dielectric) < 10*10**-3:
+    bu,bl = tol(10*10**-3)
+    if (l1+l2+dielectric) <bu:
         return True
     else:
         return False
 
 def geom_cons_1_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return (l1+l2+dielectric) - 10*10**-3
+    bu,bl = tol(10*10**-3)
+    return (l1+l2+dielectric) - bu
 
 
 def geom_cons_2(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.05
-    if (2+eps_max)*l_sma < 10*10**-3:
+    bu,bl = tol(10*10**-3)
+    if (2+eps_max)*l_sma < bu:
         return True
     else:
         return False
@@ -185,48 +195,53 @@ def geom_cons_2(individual):
 def geom_cons_2_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.05
-    return (2+eps_max)*l_sma - 10*10**-3
+    bu,bl = tol(10*10**-3)
+    return (2+eps_max)*l_sma - bu
 
 def geom_cons_3(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    if (l2/l1)>=1:
+    bu,bl = tol(1)
+    if (l2/l1)>=bl:
         return True
     else:
         return False
 
 def geom_cons_3_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    if (l2/l1)>=1:
-        return True
-    else:
-        return False
+    bu,bl = tol(10*10**-3)
+    return (l2/l1)-bl
 
 def geom_cons_4(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    if (l_spring)<= l2:
+    bu,bl = tol(l2)
+    if (l_spring)<= bu:
         return True
     else:
         return False
 
 def geom_cons_4_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return (l_spring) - l2
+    bu,bl = tol(10*10**-3)
+    return (l_spring) - bu
 
 def geom_cons_5(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    if (l_spring - (N_spring*d_spring))>=2*dielectric:
+    bu,bl = tol(2,tolerence=10**1)
+    if (l_spring - (N_spring*d_spring))/dielectric>=bl:
         return True
     else:
         return False
 
 def geom_cons_5_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return (l_spring - (N_spring*d_spring)) - 2*dielectric
+    bu,bl = tol(2)
+    return (l_spring - (N_spring*d_spring)) - bl*dielectric
 
 def geom_cons_6(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.05
-    if l_lever>=(2*eps_max*l_sma*l2/l1):
+    bu,bl = tol(2*eps_max*l_sma*l2/l1)
+    if l_lever>=bl:
         return True
     else:
         return False
@@ -234,14 +249,16 @@ def geom_cons_6(individual):
 def geom_cons_6_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.04
-    return l_lever - (2*eps_max*l_sma*l2/l1)
+    bu,bl = tol(2*eps_max*l_sma*l2/l1)
+    return l_lever - bl
 
 def geom_cons_7(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.05
-    if (l_spring**2 - (l_spring-dielectric)**2) < 0:
+    bu,bl = tol(eps_max*l_sma*l2/l1)
+    if l_spring**2 - (l_spring-dielectric) <= 0:
         return False
-    if np.sqrt(l_spring**2 - (l_spring-dielectric)**2)>=(eps_max*l_sma*l2/l1):
+    elif np.sqrt(l_spring**2 - (l_spring-dielectric)**2)>=bl:
         return True
     else:
         return False
@@ -249,43 +266,49 @@ def geom_cons_7(individual):
 def geom_cons_7_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     eps_max = 0.05
-    return np.sqrt(l_spring**2 - (l_spring-dielectric)**2) - (eps_max*l_sma*l2/l1)
+    bu,bl = tol(eps_max*l_sma*l2/l1)
+    if l_spring**2 - (l_spring-dielectric) < 0:
+        return 1
+    return np.sqrt(l_spring**2 - (l_spring-dielectric)**2) - bl
 
 def geom_cons_8(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-
-    if l_lever < 10*10**-3:
+    bu,bl = tol(10*10**-3)
+    if l_lever < bu:
         return True
     else:
         return False
 
 def geom_cons_8_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
+    bu,bl = tol(10*10**-3)
 
-    return l_lever - 10*10**-3 + 10**-6
+    return l_lever - bu
 
 def geom_cons_9(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-
-    if D_spring/d_spring >= 6:
+    bu,bl = tol(6)
+    if D_spring/d_spring >= bl:
         return True
     else:
         return False
 
 def geom_cons_9_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-
-    return D_spring/d_spring - 6
+    bu,bl = tol(6)
+    return D_spring/d_spring - bl
 
 def current(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
+    
     return (10**7)*d_sma**2 + 275.92*d_sma + 0.0301
 
 def func_cons_1(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     # F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
     # mat = [material,E,G,v]
-    if I < current(individual):
+    bu,bl = tol(current(individual),tolerence=1)
+    if I < bu:
         return True
     else:
         return False
@@ -293,33 +316,42 @@ def func_cons_1(individual):
 
 def func_cons_1_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return I - current(individual)
+    bu,bl = tol(current(individual))
+
+    return I - bu
 
 def func_cons_2(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     # F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
     # mat = [material,E,G,v]
-    if F[1]*l1 > F[2]*l1 + 0.41*F[0]*l2:
+    bu,bl = tol(0)
+
+    if F[1]*l1 - (F[2]*l1 + 0.41*F[0]*l2) > bl:
         return True
     else:
         return False
 
 def func_cons_2_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return F[1]*l1 - F[2]*l1 + 0.41*F[0]*l2
+    bu,bl = tol(0)
+   
+    return F[1]*l1 - F[2]*l1 + 0.41*F[0]*l2 -bl
 
 def func_cons_3(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     # F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
     # mat = [material,E,G,v]
-    if F[2]*l1 < F[0]*l2*0.51:
+    bu,bl = tol(0)
+
+    if F[2]*l1 - (F[0]*l2*0.51 )< bu:
         return True
     else:
         return False
 
 def func_cons_3_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return F[2]*l1 - F[0]*l2*0.51
+    bu,bl = tol(0)
+    return F[2]*l1 - F[0]*l2*0.51 - bu
 
 def func_cons_4(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
@@ -327,7 +359,8 @@ def func_cons_4(individual):
     # mat = [material,E,G,v]
     vblock = 500
     eps_air = 10**6
-    if 2*dielectric >=vblock/eps_air:
+    bu,bl = tol(vblock/eps_air)
+    if 2*dielectric >=bl:
         return True
     else:
         return False
@@ -336,7 +369,8 @@ def func_cons_4_dist(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     vblock = 500
     eps_air = 10**6
-    return 2*dielectric >=(vblock/eps_air)
+    bu,bl = tol(vblock/eps_air)
+    return 2*dielectric - bl
 
 def func_cons_5(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
@@ -368,44 +402,108 @@ def power(individual):
     if k < 0:
         k = 0
     t = -((rho*d_sma*cp)/(4*h))*np.log(k)
-    print(t)
     return F[4]*t*I**2
 
 def height(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
     return np.argmax([D_spring,d_sma])
 
+def J(individual):
+    return (power(individual),height(individual))
+
+def valid(individual):
+    if geom_cons_1(individual) and geom_cons_2(individual) and geom_cons_3(individual) and geom_cons_4(individual) and geom_cons_5(individual) \
+        and geom_cons_6(individual) and geom_cons_7(individual) and geom_cons_9(individual) and func_cons_1(individual) \
+            and func_cons_2(individual) and func_cons_3(individual) and func_cons_4(individual):
+
+        return True
+    else:
+        return False
+
+
+population_size = 500
+num_generations = 50
+gene_length = 119
+def permutations(iterable, r=None):
+    pool = tuple(iterable)
+    n = len(pool)
+    r = n if r is None else r
+    for indices in itertools.product(range(n), repeat=r):
+        if len(set(indices)) == r:
+            yield tuple(pool[i] for i in indices)
+i = 0
+# for item in permutations([0,1],119):
+#     print(item)
+#     if i > 10:
+#         break
+
+# while True:
+#     possible = np.random.choice([0, 1], size=(gene_length,), p=[1./2, 1./2])
+#     possible = list(possible)
+#     if valid(possible):
+#         l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(possible)
+#         print("valid")
+#         print("l1: {}, l2: {}, l_sma: {}, d_sma: {}, d_spring: {}, l_spring: {}, D_spring: {}, N_spring: {}, dielectric: {}, l_lever: {}, mat: {}, I: {}, Energy: {}".format(l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat[0],I, power(possible)))
+#         break
+#     else:
+#         print("not valid")
+#     i+=1
+#     print(i)
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
 
-population_size = 1000
-num_generations = 2000
-gene_length = 119
-
 toolbox = base.Toolbox()
 # toolbox.register("map", pool.map)
-hof = tools.HallOfFame(1)
-# toolbox.register("binary", bernoulli.rvs,0.5)
-toolbox.register("binary", random.randint, 0, 1)
+toolbox.register("binary", bernoulli.rvs,0.5)
+# toolbox.register("binary", random.randint, 0, 1)
 toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.binary, n=gene_length)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register('mate', tools.cxOrdered)
-# toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', tools.mutFlipBit, indpb = 0.5)
+toolbox.register('mate', tools.cxTwoPoint)
+toolbox.register('mutate', tools.mutFlipBit, indpb = 0.6)
 toolbox.register('select', tools.selNSGA2)
-toolbox.register('evaluate', power)
-listCons = [geom_cons_1,geom_cons_2,geom_cons_3,geom_cons_4,geom_cons_5,geom_cons_6,geom_cons_7,geom_cons_8,geom_cons_9,func_cons_1,func_cons_2,func_cons_3,func_cons_4]
-listDist = [geom_cons_1_dist,geom_cons_2_dist,geom_cons_3_dist,geom_cons_4_dist,geom_cons_5_dist,geom_cons_6_dist,geom_cons_7_dist,geom_cons_8_dist,geom_cons_9_dist,func_cons_1_dist,func_cons_2_dist,func_cons_3_dist,func_cons_4_dist]
-for i in range(len(listCons)):
-    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 12.0,listDist[i]))
+toolbox.register('evaluate', J)
 
+
+listCons = [geom_cons_1,geom_cons_2,geom_cons_3,geom_cons_4,geom_cons_5,geom_cons_6,geom_cons_7,geom_cons_9,func_cons_1,func_cons_2,func_cons_3,func_cons_4]
+listDist = [geom_cons_1_dist,geom_cons_2_dist,geom_cons_3_dist,geom_cons_4_dist,geom_cons_5_dist,geom_cons_6_dist,geom_cons_7_dist,geom_cons_9_dist,func_cons_1_dist,func_cons_2_dist,func_cons_3_dist,func_cons_4_dist]
+for i in range(len(listCons)):
+    toolbox.decorate("evaluate", tools.DeltaPenalty(listCons[i], 12.0))
+
+# pareto=tools.ParetoFront()
 population = toolbox.population(n = population_size)
-pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 0.9, mutpb = 0.6, ngen = num_generations, verbose = True)
+# fits=toolbox.map(toolbox.evaluate,population)
+# for fit,ind in zip(fits,population):
+#     ind.fitness.values=fit
+# pareto.update(population)
+# counter = 0
+# for gen in range(num_generations):
+#     offspring=algorithms.varAnd(population,toolbox,cxpb=1.0,mutpb=0.1)
+#     fits=toolbox.map(toolbox.evaluate,population)
+#     for fit,ind in zip(fits,offspring):
+#         ind.fitness.values=fit
+#     population=toolbox.select(offspring+population,k=population_size)
+#     pareto.update(population)
+#     counter += 1
+#     print(counter)
+
+pop,logbook = algorithms.eaSimple(population, toolbox, cxpb = 1, mutpb = 0.5, ngen = num_generations, verbose = True)
+# pareto_ind=pareto.items
+# p=np.array(map(J,pareto_ind))
+# h=np.array(map(J,pareto_ind))
+# print(p)
+
+# plt.plot(p,h,'ro')
 
 best_individuals = tools.selBest(pop,k = 1)
 l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(best_individuals[0])
-print("l1: {}, l2: {}, l_sma: {}, d_sma: {}, d_spring: {}, l_spring: {}, D_spring: {}, N_spring: {}, dielectric: {}, l_lever: {}, mat: {}, power: {}".format(l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat[0], power(best_individuals[0])))
+print("l1: {}, l2: {}, l_sma: {}, d_sma: {}, d_spring: {}, l_spring: {}, D_spring: {}, N_spring: {}, dielectric: {}, l_lever: {}, mat: {}, I: {}, J: {}".format(l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat[0],I, J(best_individuals[0])))
 
 for i,cons in enumerate(listCons):
     print(list(map(cons,[best_individuals[0]])))
+
+for ind in pop:
+    if valid(ind):
+        l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(ind)
+        print("valid")
+        print("l1: {}, l2: {}, l_sma: {}, d_sma: {}, d_spring: {}, l_spring: {}, D_spring: {}, N_spring: {}, dielectric: {}, l_lever: {}, mat: {}, I: {}, Energy: {}".format(l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat[0],I, power(pop)))
