@@ -423,7 +423,7 @@ def valid(individual):
 
 
 population_size = 700
-num_generations = 50
+num_generations = 2500
 gene_length = 119
 
 i = 0
