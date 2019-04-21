@@ -40,7 +40,7 @@ def decode(individual):
     l_lever = dl_spring*BitArray(individual[95:107]).uint+0
     I = dI*BitArray(individual[107:119]).uint+45*10**-3
 
-    dd_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.1*10**-3, 0.13*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
+    d_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
 
     if material == 0: # Steel
         E = 207.0*10**9
@@ -402,11 +402,12 @@ def power(individual):
     if k < 0:
         k = 0
     t = -((rho*d_sma*cp)/(4*h))*np.log(k)
-    return F[4]*t*I**2
+    return l_sma*F[4]*t*I**2
 
 def height(individual):
     l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(individual)
-    return np.argmax([D_spring,d_sma])
+    z = [D_spring,d_sma]
+    return z[np.argmax(z)]
 
 def J(individual):
     return (power(individual),height(individual))
@@ -421,34 +422,12 @@ def valid(individual):
         return False
 
 
-population_size = 500
-num_generations = 50
+population_size = 700
+num_generations = 2500
 gene_length = 119
-def permutations(iterable, r=None):
-    pool = tuple(iterable)
-    n = len(pool)
-    r = n if r is None else r
-    for indices in itertools.product(range(n), repeat=r):
-        if len(set(indices)) == r:
-            yield tuple(pool[i] for i in indices)
-i = 0
-# for item in permutations([0,1],119):
-#     print(item)
-#     if i > 10:
-#         break
 
-# while True:
-#     possible = np.random.choice([0, 1], size=(gene_length,), p=[1./2, 1./2])
-#     possible = list(possible)
-#     if valid(possible):
-#         l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F = decode(possible)
-#         print("valid")
-#         print("l1: {}, l2: {}, l_sma: {}, d_sma: {}, d_spring: {}, l_spring: {}, D_spring: {}, N_spring: {}, dielectric: {}, l_lever: {}, mat: {}, I: {}, Energy: {}".format(l1,l2,l_sma,d_sma,d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat[0],I, power(possible)))
-#         break
-#     else:
-#         print("not valid")
-#     i+=1
-#     print(i)
+i = 0
+
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)

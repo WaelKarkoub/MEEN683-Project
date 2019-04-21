@@ -5,7 +5,8 @@ import time
 import random
 import numpy as np
 from bitstring import BitArray
-
+vblock = 500
+eps_air = 10**6
 
 def decode(individual):
     vblock = 500
@@ -36,7 +37,7 @@ def decode(individual):
     l_lever = dl_spring*BitArray(individual[95:107]).uint+0
     I = dI*BitArray(individual[107:119]).uint+45*10**-3
 
-    dd_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.1*10**-3, 0.13*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
+    d_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
 
     if material == 0: # Steel
         E = 207.0*10**9
@@ -159,9 +160,26 @@ def decode(individual):
     F = [F_spring,F_heating_sma,F_rest_sma,I_supply,R,LT,HT]
     mat = [material,E,G,v]
     return [l1,l2,l_sma,dd_sma[d_sma if d_sma<=len(dd_sma)-1 else 11],d_spring,l_spring,D_spring,N_spring,dielectric,l_lever,mat,I,F]
+def list_set(d,mx,mn):
+    val = 0
+    l =[]
+    counter = 0
+    while True:
+        if val == 0 and counter == 0:
+            val=val+mn
+        else:
+            val=val+d
+
+        if val > mx:
+            break
+        l.append(val)
+        counter+=1
+        print(counter)
+    
+    return l
 
 doe = pd.DataFrame()
-d_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.1*10**-3, 0.13*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
+d_sma = [0.025*10**-3, 0.038*10**-3, 0.05*10**-3, 0.076*10**-3, 0.1*10**-3, 0.13*10**-3, 0.15*10**-3, 0.20*10**-3, 0.25*10**-3, 0.31*10**-3, 0.38*10**-3,0.51*10**-3]
 ds_l1 = pd.DataFrame()
 doe["d_sma"] = d_sma
 l1 = []
@@ -169,42 +187,86 @@ l1_max = (10*10**-3)/2
 l1_min = 0.5*10**-3
 dl1 = ((10*10**-3)/2 - 0.5*10**-3)/2**12
 
-def list_set(d,mx,mn):
-    val = 0
-    l =[]
-    while True:
-        if val == 0:
-            val=val+dl1+mn
-        
-        else:
-            val=val+dl1
-        if val > mx:
-            break
-        l.append(val)
-    
-    return l
-
 ds_l1["l1"] = list_set(dl1,l1_max,l1_min)
 ds_l1["l2"] = list_set(dl1,l1_max,l1_min)
 
 dd_spring = ((2*10**-3)/2 - 0.025*10**-3)/2**12
-d_spring_max = 2*10**-3
+d_spring_max = 10**-3
 d_spring_min = 0.025*10**-3
 ds_d_spring = pd.DataFrame()
 ds_d_spring["d_spring"] = list_set(dd_spring,d_spring_max,d_spring_min)
 
+dl_spring = ((10*10**-3)/2 - 0.0001*10**-3)/2.**12
+d_l_spring_max = 5*10**-3
+d_l_spring_min = 0.0001*10**-3
+ds_l_spring = pd.DataFrame()
+ds_l_spring["l_spring"] = list_set(dl_spring,d_l_spring_max,d_l_spring_min)
 
-# ds_d_spring["d_spring"] = ld_spring
-print(ds_d_spring.head)
+dD_spring = ((10*10**-3)/2 - 0.05*10**-3)/2**12
+d_D_spring_max = 5*10**-3
+d_D_spring_min = 0.05*10**-3
+ds_D_spring = pd.DataFrame()
+ds_D_spring["D_spring"] = list_set(dD_spring,d_D_spring_max,d_D_spring_min)
 
-# dl_spring = ((10*10**-3)/2 - 0.0001*10**-3)/2**12
-# dD_spring = ((10*10**-3)/2 - 0.05*10**-3)/2**12
-# dN_spring = 1
-# d_dielectric = ((10*10**-3)/4 - vblock/eps_air)/2**12
-# dl_lever = ((10*10**-3)/2 - 0)/2**12
-# dI = (4000 * 10**-3 - 5*10**-3)/2**12
+dN_spring = 1
+d_N_spring_max = 15
+d_N_spring_min = 1
+ds_N_spring = pd.DataFrame()
+ds_N_spring["N_spring"] = list_set(dN_spring,d_N_spring_max,d_N_spring_min)
 
-doe = pd.concat([doe, ds_l1,ds_d_spring], axis=1) 
+d_dielectric = ((10*10**-3)/4 - vblock/eps_air)/2**12
+d_die_max = (10*10**-3)/4
+d_die_min = vblock/eps_air
+ds_die = pd.DataFrame()
+ds_die["Dielectric"] = list_set(d_dielectric,d_die_max,d_die_min)
+
+print("dlever")
+dl_lever = ((10*10**-3)/2 - 0)/2**12
+d_l_lever_max = 5*10**-3
+d_l_lever_min = 0
+ds_l_lever = pd.DataFrame()
+ds_l_lever["l_lever"] = list_set(dl_lever,d_l_lever_max,d_l_lever_min)
 
 
-print(doe.head)
+dI = (4000 * 10**-3 - 5*10**-3)/2**12
+d_I_max = 4000 * 10**-3
+d_I_min = 5*10**-3
+ds_I = pd.DataFrame()
+ds_I["I"] = list_set(dI,d_I_max,d_I_min)
+
+dMat = 1
+d_Mat_max = 4
+d_mat_min = 0
+ds_Mat = pd.DataFrame()
+ds_Mat["Material"] = list_set(dMat,d_Mat_max,d_mat_min)
+
+doe = pd.concat([doe, ds_l1,ds_d_spring,ds_l_spring,ds_D_spring,ds_N_spring,ds_die,ds_l_lever,ds_I,ds_Mat], axis=1)
+print("saving") 
+doe.to_csv('full_doe.csv', index=False)
+
+data = []
+for i in doe["d_sma"]:
+    if not np.isnan(i):
+        l1 = doe["l1"].values.tolist()
+        l2 = doe["l2"].values.tolist()
+        d_spring = doe["d_spring"].values.tolist()
+        l_spring = doe["l_spring"].values.tolist()
+        D_spring = doe["D_spring"].values.tolist()
+        N_spring = doe["N_spring"].values.tolist()
+        Dielectric = doe["Dielectric"].values.tolist()
+        l_lever = doe["l_lever"].values.tolist()
+        I = doe["I"].values.tolist()
+        Mat = doe["Material"].values.tolist()
+
+        exp = [i,random.choice(l1),random.choice(l2),random.choice(d_spring),random.choice(l_spring),random.choice(D_spring),\
+            random.choice(N_spring),random.choice(Dielectric),random.choice(l_lever),random.choice(I),random.choice(Mat)]
+        
+        data.append(exp)
+        
+
+columns = ["d_sma","l1","l2","d_spring","l_spring","D_spring","N_spring","Dielectric","l_lever","I","Material"]
+random_doe = pd.DataFrame(data,columns = columns)
+random_doe.to_csv('random_doe.csv', index=False)
+        
+    
+
