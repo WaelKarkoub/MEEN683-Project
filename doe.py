@@ -190,6 +190,13 @@ dl1 = ((10*10**-3)/2 - 0.5*10**-3)/2**12
 ds_l1["l1"] = list_set(dl1,l1_max,l1_min)
 ds_l1["l2"] = list_set(dl1,l1_max,l1_min)
 
+
+dl_sma = ((10*10**-3)/2 - 2*10**-3)/2**12
+d_l_sma_max = 10**-3
+d_l_sma_min = 0.025*10**-3
+ds_l_sma = pd.DataFrame()
+ds_l_sma["l_sma"] = list_set(dl_sma,d_l_sma_max,d_l_sma_min)
+
 dd_spring = ((2*10**-3)/2 - 0.025*10**-3)/2**12
 d_spring_max = 10**-3
 d_spring_min = 0.025*10**-3
@@ -240,7 +247,7 @@ d_mat_min = 0
 ds_Mat = pd.DataFrame()
 ds_Mat["Material"] = list_set(dMat,d_Mat_max,d_mat_min)
 
-doe = pd.concat([doe, ds_l1,ds_d_spring,ds_l_spring,ds_D_spring,ds_N_spring,ds_die,ds_l_lever,ds_I,ds_Mat], axis=1)
+doe = pd.concat([doe, ds_l1,ds_d_spring,ds_l_spring,ds_D_spring,ds_N_spring,ds_die,ds_l_lever,ds_I,ds_Mat,ds_l_sma], axis=1)
 print("saving") 
 doe.to_csv('full_doe.csv', index=False)
 
@@ -257,14 +264,16 @@ for i in doe["d_sma"]:
         l_lever = doe["l_lever"].values.tolist()
         I = doe["I"].values.tolist()
         Mat = doe["Material"].values.tolist()
+        l_sma = doe["l_sma"].values.tolist()
 
         exp = [i,random.choice(l1),random.choice(l2),random.choice(d_spring),random.choice(l_spring),random.choice(D_spring),\
-            random.choice(N_spring),random.choice(Dielectric),random.choice(l_lever),random.choice(I),random.choice(Mat)]
+            random.choice([i for i in N_spring if not np.isnan(i)]),random.choice(Dielectric),random.choice(l_lever),random.choice(I),random.choice([i for i in Mat if not np.isnan(i)]),\
+                random.choice([i for i in l_sma if not np.isnan(i)])]
         
         data.append(exp)
         
 
-columns = ["d_sma","l1","l2","d_spring","l_spring","D_spring","N_spring","Dielectric","l_lever","I","Material"]
+columns = ["d_sma","l1","l2","d_spring","l_spring","D_spring","N_spring","Dielectric","l_lever","I","Material","l_sma"]
 random_doe = pd.DataFrame(data,columns = columns)
 random_doe.to_csv('random_doe.csv', index=False)
         
