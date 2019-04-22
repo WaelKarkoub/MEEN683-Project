@@ -11,6 +11,7 @@ import pandas as pd
 import itertools
 doe = pd.read_csv("random_doe.csv")
 experiment = doe.values.tolist()
+import os 
 
 
 
@@ -551,14 +552,27 @@ def valid(individual):
         return False
 
 exp_output = []
+flag = 0
 
-for exp in experiment:
-    result = J(exp)
-    feasible = valid(exp)
-    z = exp + [result] + [feasible]
-    exp_output.append(z)
-    print(z)
+while True:
+    exec('doe')
+    time.sleep()
+    exp_output = []
+    for exp in experiment:
+        result = J(exp)
+        feasible = valid(exp)
+        if feasible:
+            flag = 1
+        z = exp + [result] + [feasible]
+        exp_output.append(z)
+            
+    print(flag)
+    if flag:
+        print("found feasible")
+        break
+    
+
 
 columns = ["d_sma","l1","l2","d_spring","l_spring","D_spring","N_spring","Dielectric","l_lever","I","Material","l_sma","Solution","Feasibility"]
 experiment = pd.DataFrame(exp_output,columns=columns)
-experiment.to_csv("experiment.csv")
+experiment.to_csv("experiment.csv",index=False)
